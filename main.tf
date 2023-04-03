@@ -25,6 +25,21 @@ resource "azurerm_virtual_network" "vnet1" {
   resource_group_name = azurerm_resource_group.rg1.name
 }
 
+resource "azurerm_user_assigned_identity" "identity" {
+  name                = "${var.vm_name}-identity"
+  resource_group_name = azurerm_resource_group.rg1.name
+  location            = azurerm_resource_group.rg1.location
+}
+
+data "azurerm_subscription" "primary" {
+}
+
+resource "azurerm_role_assignment" "role_assignment" {
+  scope                = data.azurerm_subscription.primary.id
+  role_definition_name = "Contributor"
+  principal_id         = azurerm_user_assigned_identity.identity.principal_id
+}
+
 resource "azurerm_subnet" "subnet1" {
   name                 = "${var.vm_name}-subnet"
   resource_group_name  = azurerm_resource_group.rg1.name
@@ -61,6 +76,12 @@ resource "azurerm_virtual_machine" "vm1" {
   delete_os_disk_on_termination = true
   delete_data_disks_on_termination = true
 
+ identity {
+    type         = "UserAssigned"
+    identity_ids = [ azurerm_user_assigned_identity.identity.id ]
+  }
+  
+
   storage_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
@@ -77,7 +98,7 @@ resource "azurerm_virtual_machine" "vm1" {
     computer_name  = var.vm_name
     admin_username = var.admin_username
     admin_password = var.admin_password
-    custom_data = data.template_file.userdata.rendered
+    custom_data = file("userdata.sh")
   }
   os_profile_linux_config {
     disable_password_authentication = true
@@ -94,9 +115,9 @@ data "azurerm_ssh_public_key" "ssh_public_key" {
   name                = var.ssh_key_name
 }
 
-data "template_file" "userdata" {
+/* data "template_file" "userdata" {
   template = file("${abspath(path.module)}/userdata.sh")
-}
+} */
 
 resource "azurerm_network_interface_security_group_association" "nic1" {
   network_interface_id      = azurerm_network_interface.main.id

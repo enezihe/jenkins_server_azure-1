@@ -19,7 +19,7 @@ variable "subnet_address_space" {
 }
 
 variable "admin_username" {
-    default = "ccseyhan"
+    default = "nbt"
 }
 
 variable "admin_password" {
@@ -27,15 +27,15 @@ variable "admin_password" {
 }
 
 variable "ssh_key_name" {
-    default = "azure"
+    default = "azure-ssh"
 }
 
 variable "ssh_key_rg" {
-    default = "sshkey"
+    default = "nbt-rg-test"
 }
 
 variable "ssh_key_path" {
-    default = "~/main/ssh-keys/"
+    default = "~/sshkeys/"
 }
 
 
